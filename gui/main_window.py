@@ -39,6 +39,9 @@ class MonitoringApp(QWidget):
     def initUI(self):
         layout = QVBoxLayout()
 
+        self.cpu_name_label = QLabel()
+        layout.addWidget(self.cpu_name_label)
+
         self.cpu_usage_meter = AnalogMeter("CPU Usage")
         layout.addWidget(self.cpu_usage_meter)
 
@@ -56,13 +59,14 @@ class MonitoringApp(QWidget):
 
         self.setLayout(layout)
 
-    def update_monitoring_data(self, cpu_usage, cpu_temps, ram_info, gpu_info):
+    def update_monitoring_data(self, cpu_name, cpu_usage, cpu_temps, ram_info, gpu_info):
+        self.cpu_name_label.setText(f"CPU Name: {cpu_name}")
         self.cpu_usage_meter.setValue(cpu_usage)
         if cpu_temps:
             if isinstance(cpu_temps, list):
-                temps_str = "\n".join([f"CPU Temperature {i+1}: {temp}°C" for i, temp in enumerate(cpu_temps)])
+                temps_str = "\n".join([f"CPU Temperature {i+1}: {temp:.2f}°C" for i, temp in enumerate(cpu_temps)])
             elif isinstance(cpu_temps, dict):
-                temps_str = "\n".join([f"{key}: {value}°C" for key, value in cpu_temps.items()])
+                temps_str = "\n".join([f"{key}: {value:.2f}°C" for key, value in cpu_temps.items()])
             else:
                 temps_str = "CPU Temperature: Not available"
             self.cpu_temp_label.setText(temps_str)
@@ -73,7 +77,7 @@ class MonitoringApp(QWidget):
 
         if gpu_info:
             self.gpu_usage_meter.setValue(gpu_info[0]['load'])
-            gpu_str = "\n\n".join([f"GPU {i+1}:\nName: {gpu['name']}\nLoad: {gpu['load']:.2f}%\nTemperature: {gpu['temperature']}°C" for i, gpu in enumerate(gpu_info)])
+            gpu_str = "\n\n".join([f"GPU {i+1}:\nName: {gpu['name']}\nLoad: {gpu['load']:.2f}%\nTemperature: {gpu['temperature']:.2f}°C" for i, gpu in enumerate(gpu_info)])
             self.gpu_info_label.setText(gpu_str)
         else:
             self.gpu_info_label.setText("GPU Info: Not available")
@@ -90,10 +94,10 @@ def load_settings():
         return {}
 
 def update_gui(monitor):
-    cpu_usage, cpu_temps = get_cpu_info()
+    cpu_name, cpu_usage, cpu_temps = get_cpu_info()
     ram_info = get_ram_info()
     gpu_info = get_gpu_info()
-    monitor.update_monitoring_data(cpu_usage, cpu_temps, ram_info, gpu_info)
+    monitor.update_monitoring_data(cpu_name, cpu_usage, cpu_temps, ram_info, gpu_info)
 
 def main():
     app = QApplication(sys.argv)
