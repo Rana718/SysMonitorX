@@ -2,6 +2,25 @@ import psutil
 import platform
 import wmi
 
+
+def get_cpu_name():
+    if platform.system() == "Windows":
+        try:
+            w = wmi.WMI()
+            for processor in w.Win32_Processor():
+                return processor.Name
+        except wmi.x_wmi as e:
+            print(f"Error querying WMI: {e}")
+    elif platform.system() == "Linux":
+        try:
+            with open("/proc/cpuinfo", "r") as f:
+                for line in f:
+                    if "model name" in line:
+                        return line.split(":")[1].strip()
+        except FileExistsError:
+            pass
+    return "Unknown CPU"
+
 def get_cpu_info():
     cpu_usage = psutil.cpu_percent(interval=1)
     cpu_temps = []
@@ -24,5 +43,6 @@ def get_cpu_info():
             pass
         except wmi.x_wmi as e:
             print(f"Error querying WMI: {e}")
-    
-    return cpu_usage, cpu_temps
+    cpu_name = get_cpu_name()
+    return cpu_name, cpu_usage, cpu_temps
+
